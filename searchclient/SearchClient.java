@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.*;
 
 import searchclient.Memory;
 import searchclient.Strategy.*;
@@ -19,15 +22,23 @@ public class SearchClient {
 			System.err.println("Error, client does not support colors.");
 			System.exit(1);
 		}
-
+		ArrayList<String> boardLines = new ArrayList<String>();
+		int max_col = 0;
+		int num_rows = 0;
+		// Trying to optimize space
+		while (!line.equals("")) {
+			boardLines.add(line);
+			num_rows++;
+			max_col = Math.max(line.length(), max_col);
+			line = serverMessages.readLine();
+		}
 		int row = 0;
 		boolean agentFound = false;
-		this.initialState = new Node(null);
-
-		while (!line.equals("")) {
-			for (int col = 0; col < line.length(); col++) {
-				char chr = line.charAt(col);
-
+		this.initialState = new Node(null, num_rows, max_col);
+		// Changed this to optimize space
+		for (String l : boardLines) {
+			for (int col = 0; col < l.length(); col++) {
+				char chr = l.charAt(col);
 				if (chr == '+') { // Wall.
 					this.initialState.walls[row][col] = true;
 				} else if ('0' <= chr && chr <= '9') { // Agent.
@@ -49,8 +60,7 @@ public class SearchClient {
 					System.exit(1);
 				}
 			}
-			line = serverMessages.readLine();
-			row++;
+			row++;			
 		}
 	}
 
