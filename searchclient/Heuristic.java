@@ -51,13 +51,12 @@ public abstract class Heuristic implements Comparator<Node> {
 				// If there is, determine which character it is
 				// Then match it with a goal state
 				for (int goal = 0; goal < this.goals.size(); goal++) {
-					// if ((int)n.boxes[row][col] == this.goals[goal][2]) {
-						
-					// }
-					h_val += this.distances[row][col][goal];
+					if ((int)n.boxes[row][col] == this.goals.get(goal)[2]) {
+						h_val += this.distances[row][col][goal];	
+					}
 				}
 			}
-		}		
+		}
 		return h_val;
 	}
 
