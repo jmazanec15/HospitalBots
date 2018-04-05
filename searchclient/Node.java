@@ -25,7 +25,6 @@ public class Node {
 	// (Start in the top left corner, first go down, then go right)
 	// E.g. this.walls[2] is an array of booleans having size MAX_COL.
 	// this.walls[row][col] is true if there's a wall at (row, col)
-	//
 
 	public boolean[][] walls; // = new boolean[MAX_ROW][MAX_COL]; // thinking of making these pointers
 	public char[][] boxes;
@@ -133,7 +132,7 @@ public class Node {
 		return !this.walls[row][col] && this.boxes[row][col] == 0;
 	}
 
-	private boolean boxAt(int row, int col) {
+	public boolean boxAt(int row, int col) {
 		return this.boxes[row][col] > 0;
 	}
 
@@ -216,5 +215,4 @@ public class Node {
 		}
 		return s.toString();
 	}
-
 }
