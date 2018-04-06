@@ -13,7 +13,6 @@ public abstract class Heuristic implements Comparator<Node> {
 	// private Vector<Int[]> goals;
 	private ArrayList<int[]> goals;
 
-
 	public Heuristic(Node initialState) {
 		/****** Preprocessing ******/
 		// Calculating the Manhatten distance for cells to goals
@@ -45,18 +44,32 @@ public abstract class Heuristic implements Comparator<Node> {
 	public int h(Node n) {
 		// Heuristic function here
 		int h_val = 0;
-		for (int row = 0; row < n.MAX_ROW; row++) {
-			for (int col = 0; col < n.MAX_COL; col++) {
-				if (!n.boxAt(row, col)) {continue;} // if there is not a box continue
-				// If there is, determine which character it is
-				// Then match it with a goal state
-				for (int goal = 0; goal < this.goals.size(); goal++) {
-					if ((int)n.boxes[row][col] == this.goals.get(goal)[2]) {
-						h_val += this.distances[row][col][goal];	
+		int min_dist;
+		for (int goal = 0; goal < this.goals.size(); goal++) {
+			min_dist = 100000;
+			for (int row = 0; row < n.MAX_ROW; row++) {
+				for (int col = 0; col < n.MAX_COL; col++) {
+					if (n.boxAt(row, col) && (int)n.boxes[row][col] == this.goals.get(goal)[2]) {
+						min_dist = Math.min(this.distances[row][col][goal], min_dist);	
 					}
 				}
 			}
+			h_val += min_dist;
 		}
+
+		// for (int row = 0; row < n.MAX_ROW; row++) {
+		// 	for (int col = 0; col < n.MAX_COL; col++) {
+		// 		if (!n.boxAt(row, col)) {continue;} // if there is not a box continue
+		// 		// If there is, determine which character it is
+		// 		// Then match it with a goal state
+		// 		for (int goal = 0; goal < this.goals.size(); goal++) {
+		// 			// if ((int)n.boxes[row][col] == this.goals.get(goal)[2]) {
+		// 			// 	// have to somehow minimize everything
+		// 			// 	h_val += this.distances[row][col][goal];
+		// 			// }
+		// 		}
+		// 	}
+		// }
 		return h_val;
 	}
 
