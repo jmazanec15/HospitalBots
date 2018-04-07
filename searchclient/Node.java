@@ -132,7 +132,7 @@ public class Node {
 		return !this.walls[row][col] && this.boxes[row][col] == 0;
 	}
 
-	public boolean boxAt(int row, int col) {
+	private boolean boxAt(int row, int col) {
 		return this.boxes[row][col] > 0;
 	}
 

@@ -3,13 +3,11 @@ package searchclient;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Vector;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.ArrayList;
-
 import java.lang.Math;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 import searchclient.NotImplementedException;
+
 
 // Used ~ using dijstras ~ ADAPTED FROM https://www.geeksforgeeks.org/greedy-algorithms-set-6-dijkstras-shortest-path-algorithm/ for implementation of DIJ
 
@@ -25,6 +23,10 @@ public abstract class Heuristic implements Comparator<Node> {
 		this.MC = initialState.MAX_COL;
 		/****** Preprocessing ******/
 		// 1.) Set list of goal states coords and values
+		// 		maybe we could make this a better data structure
+		//		Like make it a dictionary, and the values are lists of int[2] arrays of coords
+		//		That way it may be easier to minimize the values for each type of goal state
+		// 		Might want to use a HashMap for this
 		this.goals = new ArrayList<int[]>();
 		for (int row = 0; row < initialState.MAX_ROW; row++) {
 			for (int col = 0; col < initialState.MAX_COL; col++) {
@@ -90,26 +92,18 @@ public abstract class Heuristic implements Comparator<Node> {
 	}
 	// Heuristic function here
 	public int h(Node n) {
-		// For each goal calculate the closest node that hasn't been used
-		int h_val = 0; // total value returned at the end
-		int[][][] taken = new int[this.MR][this.MC][this.goals.size()]; // keeps track of blocks used
-		int min_dist; // how far box is from goal
-		int[] min_ind = new int[3]; // min box indices
+		int h_val = 0;
+		int min_dist;
 		for (int goal = 0; goal < this.goals.size(); goal++) {
 			min_dist = Integer.MAX_VALUE;
-			for (int row = 0; row < this.MR; row++) {
-				for (int col = 0; col < this.MC; col++) {
-					// If goal/box match and the box hasn't been taken and its closer, set it
-					if (n.boxes[row][col] == this.goals.get(goal)[2] && taken[row][col][goal] == 0 && min_dist > this.distances[row][col][goal]) {
-						min_dist = this.distances[row][col][goal];
-						min_ind[0] = row;
-						min_ind[1] = col;
-						min_ind[2] = goal;
+			for (int row = 0; row < n.MAX_ROW; row++) {
+				for (int col = 0; col < n.MAX_COL; col++) {
+					if (n.boxes[row][col] > 0 && n.boxes[row][col] == this.goals.get(goal)[2]) {
+						min_dist = Math.min(this.distances[row][col][goal], min_dist);	
 					}
 				}
 			}
 			h_val += min_dist;
-			taken[min_ind[0]][min_ind[1]][min_ind[2]] = 1;
 		}
 		return h_val;
 	}
