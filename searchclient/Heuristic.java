@@ -34,13 +34,13 @@ public abstract class Heuristic implements Comparator<Node> {
 				}
 			}
 		}
-
 		// 2.) For each goal, compute dijstras to all other nodes in the graph
 		this.distances  = new int [initialState.MAX_ROW][initialState.MAX_COL][this.goals.size()];
 		Boolean[][][] sptSet = new Boolean [initialState.MAX_ROW][initialState.MAX_COL][this.goals.size()]; // true if already in the path
 		int coords[] = new int [2];
 		int r, c;
 		// Init all distances as infinite
+		//System.err.println("r: " + (r - 1) + " c: " + c + " distances: " + distances[r-1][c][goal]);	
 		for (int goal = 0; goal < this.goals.size() ; goal++) {
 			for (int row = 0; row < initialState.MAX_ROW; row++) {
 				for (int col = 0; col < initialState.MAX_COL; col++) {
@@ -51,35 +51,53 @@ public abstract class Heuristic implements Comparator<Node> {
 			// Set source node distance to 0
 			this.distances[this.goals.get(goal)[0]][this.goals.get(goal)[1]][goal] = 0;
 			// Find shortest path to all vertices
-			for (int i = 0; i < initialState.MAX_ROW*initialState.MAX_COL; i++) {
-				// Find next coords
-				coords = this.minDistance(goal, sptSet);
-				r = coords[0];
-				c = coords[1];
-				sptSet[r][c][goal] = true;
-				// Check four neighbor cells to update
-				if (r > 0 && !initialState.walls[r-1][c] && !sptSet[r-1][c][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r-1][c][goal]) {
-					this.distances[r-1][c][goal] = this.distances[r][c][goal] + 1;
+			for (int i = 0; i < initialState.MAX_ROW; i++) {
+				for (int j =0; j < initialState.MAX_COL; j++) {
+					// Walls arent in the graph
+					if (initialState.walls[i][j]) { continue; }
+					// Find next coords
+					coords = this.minDistance(goal, sptSet, initialState.walls);
+					r = coords[0];
+					c = coords[1];
+					sptSet[r][c][goal] = true;
+					// Check four neighbor cells to update
+					if (r > 0 && !initialState.walls[r-1][c] && !sptSet[r-1][c][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r-1][c][goal]) {
+						this.distances[r-1][c][goal] = this.distances[r][c][goal] + 1;
+					}
+					if (r < initialState.MAX_ROW - 1 && !initialState.walls[r+1][c] && !sptSet[r+1][c][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r+1][c][goal]) {
+						this.distances[r+1][c][goal] = this.distances[r][c][goal] + 1;
+					}
+					if (c > 0 && !initialState.walls[r][c-1] && !sptSet[r][c-1][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r][c-1][goal]) {
+						this.distances[r][c-1][goal] = this.distances[r][c][goal] + 1;
+					}		
+					if (c < initialState.MAX_COL - 1 && !initialState.walls[r][c+1] && !sptSet[r][c+1][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r][c+1][goal]) {
+						this.distances[r][c+1][goal] = this.distances[r][c][goal] + 1;
+					}
 				}
-				if (r < initialState.MAX_ROW - 1 && !initialState.walls[r+1][c] && !sptSet[r+1][c][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r+1][c][goal]) {
-					this.distances[r+1][c][goal] = this.distances[r][c][goal] + 1;
-				}
-				if (c > 0 && !initialState.walls[r][c-1] && !sptSet[r][c-1][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r][c-1][goal]) {
-					this.distances[r][c-1][goal] = this.distances[r][c][goal] + 1;
-				}		
-				if (c < initialState.MAX_COL - 1 && !initialState.walls[r][c+1] && !sptSet[r][c+1][goal] && this.distances[r][c][goal] != Integer.MAX_VALUE && this.distances[r][c][goal] + 1 < this.distances[r][c+1][goal]) {
-					this.distances[r][c+1][goal] = this.distances[r][c][goal] + 1;
-				}				
 			}
+
 		}
+		// System.err.print("Distances\n\n\n");
+		// for (int goal = 0; goal < this.goals.size() ; goal++) {
+		// 	for (int row = 0; row < initialState.MAX_ROW; row++) {
+		// 		for (int col = 0; col < initialState.MAX_COL; col++) {
+		// 			if (this.distances[row][col][goal] == Integer.MAX_VALUE) {
+		// 				System.err.print("W ");
+		// 			} else {
+		// 				System.err.println("r " + row +  " c " + col + " g " + goal + " distance: " + this.distances[row][col][goal]);	
+		// 			}
+					
+		// 		}
+		// 	}
+		// }
 	}
 	// Calculate the next minimum node in the coords and return coords
-	private int[] minDistance(int goal, Boolean[][][] sptSet) {
+	private int[] minDistance(int goal, Boolean[][][] sptSet, boolean[][] walls) {
 		int mini = Integer.MAX_VALUE;
 		int[] m_coords = {-1, -1};
 		for (int row = 0; row < this.MR; row++) {
 			for (int col = 0; col < this.MC; col++) {
-				if (!sptSet[row][col][goal] && this.distances[row][col][goal] <= mini) {
+				if (!walls[row][col] && !sptSet[row][col][goal] && this.distances[row][col][goal] <= mini) {
 					mini = this.distances[row][col][goal];
 					m_coords[0] = row;
 					m_coords[1] = col;
