@@ -13,7 +13,7 @@ public class Node {
 
 	public static int MAX_ROW;
 	public static int MAX_COL;
-
+	public int h = Integer.MAX_VALUE;
 	public int agentRow;
 	public int agentCol;
 
@@ -85,6 +85,7 @@ public class Node {
 				// Check if there's a wall or box on the cell to which the agent is moving
 				if (this.cellIsFree(newAgentRow, newAgentCol)) {
 					Node n = this.ChildNode();
+					n.h = this.h;
 					n.action = c;
 					n.agentRow = newAgentRow;
 					n.agentCol = newAgentCol;

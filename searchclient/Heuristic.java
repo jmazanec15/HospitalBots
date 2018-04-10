@@ -39,9 +39,8 @@ public abstract class Heuristic implements Comparator<Node> {
 		Boolean[][][] sptSet = new Boolean [initialState.MAX_ROW][initialState.MAX_COL][this.goals.size()]; // true if already in the path
 		int coords[] = new int [2];
 		int r, c;
-		// Init all distances as infinite
-		//System.err.println("r: " + (r - 1) + " c: " + c + " distances: " + distances[r-1][c][goal]);	
 		for (int goal = 0; goal < this.goals.size() ; goal++) {
+			// Init all distances as infinite
 			for (int row = 0; row < initialState.MAX_ROW; row++) {
 				for (int col = 0; col < initialState.MAX_COL; col++) {
 					this.distances[row][col][goal] = Integer.MAX_VALUE;
@@ -77,19 +76,6 @@ public abstract class Heuristic implements Comparator<Node> {
 			}
 
 		}
-		// System.err.print("Distances\n\n\n");
-		// for (int goal = 0; goal < this.goals.size() ; goal++) {
-		// 	for (int row = 0; row < initialState.MAX_ROW; row++) {
-		// 		for (int col = 0; col < initialState.MAX_COL; col++) {
-		// 			if (this.distances[row][col][goal] == Integer.MAX_VALUE) {
-		// 				System.err.print("W ");
-		// 			} else {
-		// 				System.err.println("r " + row +  " c " + col + " g " + goal + " distance: " + this.distances[row][col][goal]);	
-		// 			}
-					
-		// 		}
-		// 	}
-		// }
 	}
 	// Calculate the next minimum node in the coords and return coords
 	private int[] minDistance(int goal, Boolean[][][] sptSet, boolean[][] walls) {
@@ -108,28 +94,58 @@ public abstract class Heuristic implements Comparator<Node> {
 	}
 	// Heuristic function here
 	public int h(Node n) {
-		// For each goal calculate the closest node that hasn't been used
+		if (n.h != Integer.MAX_VALUE) {
+			return n.h;
+		}
+		int min_mov =  Integer.MAX_VALUE;
+		int v;
+		// Need to get the mover to go towards blocks
+		for (int row = 0; row < this.MR; row++) {
+			for (int col = 0; col < this.MC; col++) {
+				// check if n.boxes[row][col] is already in its goal
+				if (n.boxes[row][col] <= 0) {
+					continue;
+				} /*else if (n.boxes[row][col] == n.goals[row][col] - 32) {
+					continue;
+				}*/
+				v = Math.abs(row - n.agentRow) + Math.abs(col - n.agentCol);
+				if (v < min_mov) {
+					min_mov = v;
+				}
+			}
+		}
+		int min_dist = Integer.MAX_VALUE; // how far box is from goal
 		int h_val = 0; // total value returned at the end
-		int[][][] taken = new int[this.MR][this.MC][this.goals.size()]; // keeps track of blocks used
-		int min_dist; // how far box is from goal
+		int[][] taken = new int[this.MR][this.MC]; // keeps track of blocks used
 		int[] min_ind = new int[3]; // min box indices
+		int[] goal_dist = new int[this.goals.size()];
+		// Init values
+		for (int goal = 0; goal < this.goals.size(); goal++) {
+			goal_dist[goal] = -1;
+		}
 		for (int goal = 0; goal < this.goals.size(); goal++) {
 			min_dist = Integer.MAX_VALUE;
 			for (int row = 0; row < this.MR; row++) {
 				for (int col = 0; col < this.MC; col++) {
-					// If goal/box match and the box hasn't been taken and its closer, set it
-					if (n.boxes[row][col] == this.goals.get(goal)[2] && taken[row][col][goal] == 0 && min_dist > this.distances[row][col][goal]) {
-						min_dist = this.distances[row][col][goal];
-						min_ind[0] = row;
-						min_ind[1] = col;
-						min_ind[2] = goal;
+					if (n.boxes[row][col] <= 0 || taken[row][col] == 1) { continue; }
+					// loop through goals
+					for (int gl = 0; gl < this.goals.size(); gl++) {
+						// Find min that hasnt been taken
+						if (goal_dist[gl] == -1 && n.boxes[row][col] == this.goals.get(gl)[2] && min_dist > this.distances[row][col][gl]) {
+							min_ind[0] = row;
+							min_ind[1] = col;
+							min_ind[2] = gl;
+						}						
 					}
 				}
 			}
-			h_val += min_dist;
-			taken[min_ind[0]][min_ind[1]][min_ind[2]] = 1;
+			h_val += this.distances[min_ind[0]][min_ind[1]][min_ind[2]];;
+			goal_dist[min_ind[2]] = 1;
+			taken[min_ind[0]][min_ind[1]] = 1;
 		}
-		return h_val;
+		// Set it
+		n.h = h_val + min_mov;
+		return n.h;
 	}
 
 	public abstract int f(Node n);
