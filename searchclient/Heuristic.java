@@ -20,10 +20,10 @@ public abstract class Heuristic implements Comparator<Node> {
 	private int MR, MC;
 	/* Member functions */
 	public Heuristic(Node initialState) {
+		/****** Preprocessing ******/
 		// Init vals for Max row and max column
 		this.MR = initialState.MAX_ROW;
 		this.MC = initialState.MAX_COL;
-		/****** Preprocessing ******/
 		// 1.) Set list of goal states coords and values
 		this.goals = new ArrayList<int[]>();
 		for (int row = 0; row < initialState.MAX_ROW; row++) {
@@ -34,7 +34,7 @@ public abstract class Heuristic implements Comparator<Node> {
 				}
 			}
 		}
-		// 2.) For each goal, compute dijstras to all other nodes in the graph
+		// 2.) For each goal, compute distance using dijstras to all other nodes in the graph
 		this.distances  = new int [initialState.MAX_ROW][initialState.MAX_COL][initialState.MAX_ROW][initialState.MAX_COL];
 		Boolean[][][][] sptSet = new Boolean [initialState.MAX_ROW][initialState.MAX_COL][initialState.MAX_ROW][initialState.MAX_COL];
 		int coords[] = new int [2];
@@ -77,6 +77,7 @@ public abstract class Heuristic implements Comparator<Node> {
 				}
 			}
 		}
+		System.err.println("here");
 	}
 	// Calculate the next minimum node in the coords and return coords
 	private int[] minDistance(int r, int c, Boolean[][][][] sptSet, boolean[][] walls) {
@@ -95,12 +96,12 @@ public abstract class Heuristic implements Comparator<Node> {
 	}
 	// Heuristic function here
 	public int h(Node n) {
-		// If value is already set, return it
+		// If Node's h value is already set, return it
+		// It saves a lot of time
 		if (n.h != Integer.MAX_VALUE) {
 			return n.h;
 		}
-		// Start trying to account for mover value
-		// Find the min and max values
+		// Compute average distance the mover is from each box in the field
 		int mover_h = 0;
 		int t = 0;
 		for (int row = 0; row < this.MR; row++) {
@@ -114,25 +115,8 @@ public abstract class Heuristic implements Comparator<Node> {
 		if (t == 0) {
 			t = 1;
 		}
-
+		// Average mover_h and scale it by a factor of 8
 		mover_h = (mover_h)/(t*8);
-
-		// int mover_h = Integer.MAX_VALUE;
-		// int max_h = 0;
-		// for (int row = 0; row < this.MR; row++) {
-		// 	for (int col = 0; col < this.MC; col++) {
-		// 		if (n.boxes[row][col] > 0 && this.distances[n.agentRow][n.agentCol][row][col] < mover_h && n.boxes[row][col] != n.goals[row][col] - 32) {
-		// 			mover_h = this.distances[n.agentRow][n.agentCol][row][col];
-		// 		} 
-		// 		if (n.boxes[row][col] > 0 && this.distances[n.agentRow][n.agentCol][row][col] > max_h) {
-		// 			max_h = this.distances[n.agentRow][n.agentCol][row][col];
-		// 		}				
-		// 	}
-		// }
-		// if (mover_h == Integer.MAX_VALUE) {
-		// 	mover_h = 0;
-		// }
-		// mover_h = (max_h + mover_h)/4;
 		// Check if we need to calculate the board 
 		if (n.h_board != Integer.MAX_VALUE) {
 			n.h = n.h_board + mover_h;
@@ -156,7 +140,7 @@ public abstract class Heuristic implements Comparator<Node> {
 					// loop through goals
 					for (int gl = 0; gl < this.goals.size(); gl++) {
 						// Find min that hasnt been taken
-						if (goal_dist[gl] == -1 && n.boxes[row][col] == this.goals.get(gl)[2] && min_dist > this.distances[row][col][this.goals.get(gl)[0]][this.goals.get(gl)[1]]) {
+						if (goal_dist[gl] == -1 && n.boxes[row][col] == this.goals.get(gl)[2] && min_dist > this.distances[row][col][this.goals.get(gl)[0]][this.goals.get(gl)[1]] + this.distances[row][col][n.agentRow][n.agentCol]) {
 							min_ind[0] = row;
 							min_ind[1] = col;
 							min_ind[2] = gl;
